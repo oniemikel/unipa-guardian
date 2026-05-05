@@ -1,18 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "UNIPA Session Guardian",
-  "version": "1.1",
-  "description": "UNIPAのセッションを掌握し、入力内容を保護します",
+  "name": "UNIPA Guardian",
+  "version": "2.2.1",
   "permissions": [
     "storage"
   ],
+  "action": {
+    "default_popup": "options.html",
+    "default_title": "UNIPA Guardian 設定"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
   "host_permissions": [
     "https://unipa.u-hyogo.ac.jp/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://unipa.u-hyogo.ac.jp/uprx/*"
+        "https://unipa.u-hyogo.ac.jp/*"
       ],
       "js": [
         "content.js"
