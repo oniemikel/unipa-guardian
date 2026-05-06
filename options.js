@@ -10,6 +10,12 @@ document.getElementById("save").addEventListener("click", () => {
   });
 });
 
+const versionLabel = document.getElementById("versionLabel");
+if (versionLabel) {
+  const version = chrome.runtime.getManifest().version;
+  versionLabel.textContent = `v${version} - Securely protecting your inputs`;
+}
+
 // ロード時に設定を読み込む
 chrome.storage.local.get({ showStatus: true }, (items) => {
   document.getElementById("showStatus").checked = items.showStatus;

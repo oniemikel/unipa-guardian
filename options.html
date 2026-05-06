@@ -29,6 +29,10 @@
       margin-bottom: 20px;
     }
 
+    .header-icon {
+      font-size: 20px;
+    }
+
     .header h1 {
       font-size: 16px;
       margin: 0;
@@ -133,13 +137,13 @@
 
 <body>
   <div class="header">
-    <span style="font-size: 20px;">🛡️</span>
+    <span class="header-icon">🛡️</span>
     <h1>UNIPA Guardian</h1>
   </div>
 
   <div class="card">
     <div class="setting-item">
-      <span class="setting-label">セッションモニターを表示</span>
+      <label class="setting-label" for="showStatus">セッションモニターを表示</label>
       <label class="switch">
         <input type="checkbox" id="showStatus">
         <span class="slider"></span>
@@ -151,7 +155,7 @@
     <button id="save" class="save-btn">設定を保存</button>
   </div>
 
-  <div class="version">v2.1.1 - Securely protecting your inputs</div>
+  <div class="version" id="versionLabel"></div>
 
   <script src="options.js"></script>
 </body>
