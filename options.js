@@ -2,6 +2,14 @@ const storageArea = globalThis.chrome && chrome.storage && chrome.storage.local;
 const SAVE_KEY = "unipa_zombie_text";
 const FILE_STORE_KEY = "unipa_zombie_file";
 
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modalTitle");
+const modalMessage = document.getElementById("modalMessage");
+const modalCancel = document.getElementById("modalCancel");
+const modalConfirm = document.getElementById("modalConfirm");
+const toast = document.getElementById("toast");
+
 function getAllLocalKeys() {
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -17,10 +25,58 @@ function deleteBackupEntries(prefix) {
     .forEach((key) => localStorage.removeItem(key));
 }
 
-function confirmAndRun(message, action, doneMessage) {
-  if (!window.confirm(message)) return;
+function showToast(message) {
+  toast.textContent = message;
+  toast.hidden = false;
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => {
+    toast.hidden = true;
+  }, 2200);
+}
+
+function openModal({ title, message, confirmLabel = "OK", cancelLabel = "キャンセル" }) {
+  return new Promise((resolve) => {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modalConfirm.textContent = confirmLabel;
+    modalCancel.textContent = cancelLabel;
+    modalBackdrop.hidden = false;
+    modal.hidden = false;
+
+    const close = (result) => {
+      modalBackdrop.hidden = true;
+      modal.hidden = true;
+      modalConfirm.removeEventListener("click", onConfirm);
+      modalCancel.removeEventListener("click", onCancel);
+      modalBackdrop.removeEventListener("click", onCancel);
+      document.removeEventListener("keydown", onKeydown);
+      resolve(result);
+    };
+
+    const onConfirm = () => close(true);
+    const onCancel = () => close(false);
+    const onKeydown = (event) => {
+      if (event.key === "Escape") onCancel();
+    };
+
+    modalConfirm.addEventListener("click", onConfirm);
+    modalCancel.addEventListener("click", onCancel);
+    modalBackdrop.addEventListener("click", onCancel);
+    document.addEventListener("keydown", onKeydown);
+    modalConfirm.focus();
+  });
+}
+
+async function confirmAndRun(message, action, doneMessage) {
+  const confirmed = await openModal({
+    title: "確認",
+    message,
+    confirmLabel: "削除する",
+    cancelLabel: "キャンセル",
+  });
+  if (!confirmed) return;
   action();
-  window.alert(doneMessage);
+  showToast(doneMessage);
 }
 
 document.getElementById("save").addEventListener("click", () => {

@@ -195,6 +195,90 @@
       text-align: center;
       margin-top: 15px;
     }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 50;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 60;
+      padding: 20px;
+    }
+
+    .modal[hidden],
+    .modal-backdrop[hidden] {
+      display: none;
+    }
+
+    .modal-card {
+      width: min(92vw, 420px);
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      padding: 20px;
+    }
+
+    .modal-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .modal-message {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #475569;
+      white-space: pre-wrap;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .modal-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-btn-secondary {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .modal-btn-primary {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      z-index: 70;
+      background: #1e293b;
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 12px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+    }
   </style>
 </head>
 
@@ -232,6 +316,20 @@
   </div>
 
   <div class="version" id="versionLabel"></div>
+
+  <div id="modalBackdrop" class="modal-backdrop" hidden></div>
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+    <div class="modal-card">
+      <h2 id="modalTitle" class="modal-title"></h2>
+      <p id="modalMessage" class="modal-message"></p>
+      <div class="modal-actions">
+        <button id="modalCancel" type="button" class="modal-btn modal-btn-secondary">キャンセル</button>
+        <button id="modalConfirm" type="button" class="modal-btn modal-btn-primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
 
   <script src="options.js"></script>
 </body>

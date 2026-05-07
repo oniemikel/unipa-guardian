@@ -167,6 +167,134 @@
     setTimeout(() => feedback.remove(), 3000);
   }
 
+  function ensureModalRoot() {
+    let root = document.getElementById("unipa-guardian-modal-root");
+    if (root) return root;
+
+    root = document.createElement("div");
+    root.id = "unipa-guardian-modal-root";
+    root.innerHTML = `
+      <div class="ug-modal-backdrop" hidden></div>
+      <div class="ug-modal" role="dialog" aria-modal="true" aria-labelledby="ug-modal-title" hidden>
+        <div class="ug-modal__card">
+          <h2 id="ug-modal-title" class="ug-modal__title"></h2>
+          <p class="ug-modal__message"></p>
+          <div class="ug-modal__actions">
+            <button type="button" class="ug-modal__btn ug-modal__btn--secondary" data-action="cancel">キャンセル</button>
+            <button type="button" class="ug-modal__btn ug-modal__btn--primary" data-action="confirm">OK</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const modalStyle = document.createElement("style");
+    modalStyle.textContent = `
+      .ug-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        z-index: 2147483646;
+      }
+      .ug-modal {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        z-index: 2147483647;
+        padding: 20px;
+      }
+      .ug-modal__card {
+        width: min(92vw, 420px);
+        background: #fff;
+        color: #1e293b;
+        border-radius: 16px;
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .ug-modal__title {
+        margin: 0 0 10px;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+      .ug-modal__message {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.7;
+        color: #475569;
+        white-space: pre-wrap;
+      }
+      .ug-modal__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .ug-modal__btn {
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .ug-modal__btn--secondary {
+        background: #e2e8f0;
+        color: #334155;
+      }
+      .ug-modal__btn--primary {
+        background: #dc2626;
+        color: #fff;
+      }
+    `;
+
+    document.head.appendChild(modalStyle);
+    document.body.appendChild(root);
+    return root;
+  }
+
+  function showModal({ title, message, confirmLabel = "OK", cancelLabel = "キャンセル" }) {
+    return new Promise((resolve) => {
+      const root = ensureModalRoot();
+      const backdrop = root.querySelector(".ug-modal-backdrop");
+      const modal = root.querySelector(".ug-modal");
+      const titleEl = root.querySelector(".ug-modal__title");
+      const messageEl = root.querySelector(".ug-modal__message");
+      const confirmBtn = root.querySelector('[data-action="confirm"]');
+      const cancelBtn = root.querySelector('[data-action="cancel"]');
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      confirmBtn.textContent = confirmLabel;
+      cancelBtn.textContent = cancelLabel;
+      backdrop.hidden = false;
+      modal.hidden = false;
+
+      const close = (result) => {
+        backdrop.hidden = true;
+        modal.hidden = true;
+        confirmBtn.removeEventListener("click", onConfirm);
+        cancelBtn.removeEventListener("click", onCancel);
+        backdrop.removeEventListener("click", onCancel);
+        document.removeEventListener("keydown", onKeydown);
+        resolve(result);
+      };
+
+      const onConfirm = () => close(true);
+      const onCancel = () => close(false);
+      const onKeydown = (event) => {
+        if (event.key === "Escape") onCancel();
+      };
+
+      confirmBtn.addEventListener("click", onConfirm);
+      cancelBtn.addEventListener("click", onCancel);
+      backdrop.addEventListener("click", onCancel);
+      document.addEventListener("keydown", onKeydown);
+      confirmBtn.focus();
+    });
+  }
+
   function createFileRescuePanel(insertTarget, fileList, inputEl) {
     const oldPanel = insertTarget.querySelector(".unipa-rescue-panel");
     if (oldPanel) oldPanel.remove();
@@ -220,19 +348,28 @@
         e.preventDefault();
         const idx = Number(btn.dataset.idx);
         const file = fileList[idx];
-        const fp = getElementFingerprint(inputEl, 'input[type="file"]');
-        const raw = localStorage.getItem(`${FILE_STORE_KEY}_${fp}`);
-        let list = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(list)) list = [list];
+        showModal({
+          title: "保存済みファイルを削除しますか？",
+          message: `${file.name}\n\nこの操作は元に戻せません。`,
+          confirmLabel: "削除する",
+          cancelLabel: "キャンセル",
+        }).then((confirmed) => {
+          if (!confirmed) return;
 
-        const nextList = list.filter((item) => item && item.name !== file.name);
-        if (nextList.length > 0) {
-          localStorage.setItem(`${FILE_STORE_KEY}_${fp}`, JSON.stringify(nextList));
-        } else {
-          localStorage.removeItem(`${FILE_STORE_KEY}_${fp}`);
-        }
+          const fp = getElementFingerprint(inputEl, 'input[type="file"]');
+          const raw = localStorage.getItem(`${FILE_STORE_KEY}_${fp}`);
+          let list = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(list)) list = [list];
 
-        createFileRescuePanel(insertTarget, nextList, inputEl);
+          const nextList = list.filter((item) => item && item.name !== file.name);
+          if (nextList.length > 0) {
+            localStorage.setItem(`${FILE_STORE_KEY}_${fp}`, JSON.stringify(nextList));
+          } else {
+            localStorage.removeItem(`${FILE_STORE_KEY}_${fp}`);
+          }
+
+          createFileRescuePanel(insertTarget, nextList, inputEl);
+        });
       };
     });
 

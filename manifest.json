@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UNIPA Guardian",
-  "version": "2.4.1",
+  "version": "2.5.1",
   "description": "Guardian for UNIPA",
   "permissions": [
     "storage"
