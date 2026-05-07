@@ -95,6 +95,19 @@
       }
       .g-dl-btn:hover { background: #edf2f7; color: #2d3748; }
 
+        .g-del-btn {
+          padding: 8px 14px;
+          border: 1px solid #fed7d7;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.2s;
+          background: #fff5f5;
+          color: #c53030;
+        }
+        .g-del-btn:hover { background: #fed7d7; color: #9b2c2c; }
+
       /* インジケーターのデザイン */
       #zombie-indicator {
           backdrop-filter: blur(8px);
@@ -170,8 +183,9 @@
                   <span class="file-status">● Protected</span>
               </div>
               <div class="btn-group">
-                  <button class="g-inject-btn" data-idx="${idx}">復元</button>
-                  <button class="g-dl-btn" data-idx="${idx}">DL</button>
+                  <button class="g-inject-btn" data-idx="${idx}" title="復元" aria-label="復元">🔄</button>
+                  <button class="g-dl-btn" data-idx="${idx}" title="ダウンロード" aria-label="ダウンロード">⬇️</button>
+                  <button class="g-del-btn" data-idx="${idx}" title="削除" aria-label="削除">🗑️</button>
               </div>
           </div>
       `,
@@ -198,6 +212,27 @@
         link.href = file.data;
         link.download = file.name;
         link.click();
+      };
+    });
+
+    container.querySelectorAll(".g-del-btn").forEach((btn) => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const idx = Number(btn.dataset.idx);
+        const file = fileList[idx];
+        const fp = getElementFingerprint(inputEl, 'input[type="file"]');
+        const raw = localStorage.getItem(`${FILE_STORE_KEY}_${fp}`);
+        let list = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(list)) list = [list];
+
+        const nextList = list.filter((item) => item && item.name !== file.name);
+        if (nextList.length > 0) {
+          localStorage.setItem(`${FILE_STORE_KEY}_${fp}`, JSON.stringify(nextList));
+        } else {
+          localStorage.removeItem(`${FILE_STORE_KEY}_${fp}`);
+        }
+
+        createFileRescuePanel(insertTarget, nextList, inputEl);
       };
     });
 
