@@ -22,9 +22,15 @@ const modalMessage = document.getElementById("modalMessage");
 const modalCancel = document.getElementById("modalCancel");
 const modalConfirm = document.getElementById("modalConfirm");
 const toast = document.getElementById("toast");
+const updateBanner = document.getElementById("updateBanner");
+const updateBannerTitle = document.getElementById("updateBannerTitle");
+const updateBannerMessage = document.getElementById("updateBannerMessage");
+const updateBannerOpen = document.getElementById("updateBannerOpen");
+const updateBannerLater = document.getElementById("updateBannerLater");
 const presetGrid = document.getElementById("presetGrid");
 const monitorPreview = document.getElementById("monitorPreview");
 const monitorPreviewBox = document.getElementById("monitorPreviewBox");
+const UPDATE_INFO_URL = "https://oniemikel.github.io/unipa-guardian/update.json";
 
 const monitorFields = {
   monitorTheme: document.getElementById("monitorTheme"),
@@ -102,6 +108,56 @@ const THEME_PRESETS = {
     monitorCorner: "alert",
   },
 };
+
+async function fetchUpdateInfo() {
+  try {
+    const response = await fetch(UPDATE_INFO_URL, { cache: "no-store" });
+    if (!response.ok) return null;
+
+    const remote = await response.json();
+    if (!remote || typeof remote !== "object") return null;
+
+    if (
+      typeof remote.version !== "string" ||
+      typeof remote.release_url !== "string" ||
+      typeof remote.message !== "string"
+    ) {
+      return null;
+    }
+
+    return remote;
+  } catch (_error) {
+    return null;
+  }
+}
+
+function showUpdateBanner(remote) {
+  if (!updateBanner || !updateBannerTitle || !updateBannerMessage) return;
+
+  const manifestVersion = globalThis.chrome?.runtime?.getManifest?.().version;
+  if (!manifestVersion || remote.version === manifestVersion) {
+    return;
+  }
+
+  updateBannerTitle.textContent = `UNIPA Guardian の新しいバージョン v${remote.version} が公開されています`;
+  updateBannerMessage.textContent = remote.message || "UNIPA Guardian の更新版が利用できます。";
+  updateBanner.dataset.releaseUrl = remote.release_url;
+  updateBanner.hidden = false;
+  updateBanner.classList.add("is-visible");
+}
+
+function hideUpdateBanner() {
+  if (!updateBanner) return;
+  updateBanner.hidden = true;
+  updateBanner.classList.remove("is-visible");
+  delete updateBanner.dataset.releaseUrl;
+}
+
+async function initUpdateBanner() {
+  const remote = await fetchUpdateInfo();
+  if (!remote) return;
+  showUpdateBanner(remote);
+}
 
 function getMonitorSettingsFromForm() {
   return Object.keys(DEFAULT_MONITOR_SETTINGS).reduce((settings, key) => {
@@ -295,6 +351,19 @@ document.getElementById("save").addEventListener("click", () => {
   window.close();
 });
 
+if (updateBannerOpen) {
+  updateBannerOpen.addEventListener("click", () => {
+    const releaseUrl = updateBanner?.dataset.releaseUrl;
+    if (releaseUrl) {
+      window.open(releaseUrl, "_blank", "noopener,noreferrer");
+    }
+  });
+}
+
+if (updateBannerLater) {
+  updateBannerLater.addEventListener("click", hideUpdateBanner);
+}
+
 Object.values(monitorFields).forEach((field) => {
   if (!field) return;
   const eventName = field.type === "select-one" || field.type === "color" ? "change" : "input";
@@ -320,6 +389,8 @@ if (presetGrid) {
     applyPreset(button.dataset.preset);
   });
 }
+
+void initUpdateBanner();
 
 document.getElementById("deleteTextBackups").addEventListener("click", () => {
   confirmAndRun(
