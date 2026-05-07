@@ -47,6 +47,10 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
+    .card + .card {
+      margin-top: 12px;
+    }
+
     .setting-item {
       display: flex;
       justify-content: space-between;
@@ -56,6 +60,65 @@
     .setting-label {
       font-size: 13px;
       font-weight: 500;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .action-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .action-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+      text-align: left;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+    }
+
+    .danger-btn {
+      background: #fff5f5;
+      color: #c53030;
+      border: 1px solid #fed7d7;
+    }
+
+    .danger-btn:hover {
+      background: #fed7d7;
+    }
+
+    .danger-strong-btn {
+      background: #fee2e2;
+      color: #9b1c1c;
+      border: 1px solid #fca5a5;
+    }
+
+    .danger-strong-btn:hover {
+      background: #fecaca;
+    }
+
+    .action-note {
+      margin: 8px 0 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #64748b;
     }
 
     /* モダンなスイッチUI */
@@ -142,6 +205,7 @@
   </div>
 
   <div class="card">
+    <div class="section-title">設定</div>
     <div class="setting-item">
       <label class="setting-label" for="showStatus">セッションモニターを表示</label>
       <label class="switch">
@@ -149,6 +213,18 @@
         <span class="slider"></span>
       </label>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">バックアップデータ削除</div>
+    <div class="action-list">
+      <button id="deleteTextBackups" class="action-btn danger-btn">📝 バックアップ済みのテキストデータを削除</button>
+      <button id="deleteFileBackups" class="action-btn danger-btn">📎 バックアップ済みのファイルデータを削除</button>
+      <button id="deleteAllBackups" class="action-btn danger-strong-btn">🧹 バックアップ済みの全データを削除</button>
+    </div>
+    <p class="action-note">
+      ここで削除できるのは、拡張機能が保存したローカルバックアップです。UNIPA 本体のデータは削除されません。
+    </p>
   </div>
 
   <div class="footer">
