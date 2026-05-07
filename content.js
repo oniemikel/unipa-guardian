@@ -103,7 +103,7 @@
           transition: all 0.3s ease;
       }
   `;
-  document.head.appendChild(style);
+  (document.head || document.documentElement).appendChild(style);
 
   // --- ロジック ---
   function getElementFingerprint(el, type) {
@@ -312,7 +312,7 @@
       pointerEvents: "none",
       lineBreak: "anywhere",
     });
-    document.body.appendChild(indicator);
+    (document.body || document.documentElement).appendChild(indicator);
   }
 
   function startTimer() {
@@ -329,7 +329,16 @@
     );
   }
 
-  chrome.storage.local.get({ showStatus: true }, (s) => {
+  const storageArea = globalThis.chrome && chrome.storage && chrome.storage.local;
+  const loadSettings = (callback) => {
+    if (storageArea && typeof storageArea.get === "function") {
+      storageArea.get({ showStatus: true }, callback);
+      return;
+    }
+    callback({ showStatus: true });
+  };
+
+  loadSettings((s) => {
     if (s.showStatus) {
       createStatusIndicator();
       startTimer();

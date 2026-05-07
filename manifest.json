@@ -14,16 +14,19 @@
     "open_in_tab": false
   },
   "host_permissions": [
-    "https://unipa.u-hyogo.ac.jp/*"
+    "https://unipa.u-hyogo.ac.jp/*",
+    "https://*.u-hyogo.ac.jp/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://unipa.u-hyogo.ac.jp/*"
+        "https://unipa.u-hyogo.ac.jp/*",
+        "https://*.u-hyogo.ac.jp/*"
       ],
       "js": [
         "content.js"
       ],
+      "all_frames": true,
       "run_at": "document_idle"
     }
   ]
