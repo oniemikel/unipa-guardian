@@ -12,15 +12,7 @@
   const style = document.createElement("style");
   style.textContent = `
       .unipa-rescue-panel {
-          margin: 20px 0 !important;
-          padding: 18px !important;
-          background: rgba(255, 255, 255, 0.95) !important;
-          border-left: 5px solid #28a745 !important;
-          border-radius: 12px !important;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-          font-family: 'Helvetica Neue', Arial, sans-serif !important;
           backdrop-filter: blur(5px);
-          border: 1px solid #e0e0e0;
       }
       .rescue-header {
           display: flex;
@@ -32,81 +24,16 @@
           letter-spacing: 0.5px;
       }
       .rescue-header i { margin-right: 8px; font-style: normal; }
-      
-      .g-file-card {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-          padding: 12px 15px;
-          background: #ffffff;
-          border: 1px solid #edf2f7;
-          border-radius: 8px;
-          transition: all 0.2s ease;
+
+      .g-inject-btn, .g-dl-btn, .g-del-btn {
+          user-select: none;
       }
-      .g-file-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-          border-color: #28a745;
-      }
-      .file-info {
-          display: flex;
-          flex-direction: column;
-          max-width: 60%;
-      }
-      .file-name {
-          font-weight: 600;
-          color: #4a5568;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          font-size: 13px;
-      }
-      .file-status {
-          font-size: 10px;
-          color: #28a745;
-          text-transform: uppercase;
-          font-weight: bold;
-          margin-top: 2px;
-      }
-      
-      .btn-group { display: flex; gap: 8px; }
-      
-      .g-inject-btn, .g-dl-btn {
-          padding: 8px 14px;
-          border: none;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: all 0.2s;
-      }
-      .g-inject-btn {
-          background: #28a745;
-          color: white;
-      }
-      .g-inject-btn:hover { background: #218838; transform: scale(1.05); }
+
+      .g-inject-btn:hover { transform: scale(1.05); }
       .g-inject-btn:active { transform: scale(0.95); }
       
-      .g-dl-btn {
-          background: #f7fafc;
-          color: #718096;
-          border: 1px solid #e2e8f0;
-      }
-      .g-dl-btn:hover { background: #edf2f7; color: #2d3748; }
-
-        .g-del-btn {
-          padding: 8px 14px;
-          border: 1px solid #fed7d7;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: bold;
-          cursor: pointer;
-          transition: all 0.2s;
-          background: #fff5f5;
-          color: #c53030;
-        }
-        .g-del-btn:hover { background: #fed7d7; color: #9b2c2c; }
+      .g-dl-btn:hover { transform: scale(1.05); }
+      .g-del-btn:hover { transform: scale(1.05); }
 
       /* インジケーターのデザイン */
       #zombie-indicator {
@@ -165,6 +92,158 @@
     });
     document.body.appendChild(feedback);
     setTimeout(() => feedback.remove(), 3000);
+  }
+
+  function applyRescuePanelStyle(panel) {
+    Object.assign(panel.style, {
+      margin: "20px 0",
+      padding: "18px",
+      background: "rgba(255, 255, 255, 0.95)",
+      borderLeft: "5px solid #28a745",
+      borderRadius: "12px",
+      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+      fontFamily: "'Helvetica Neue', Arial, sans-serif",
+      backdropFilter: "blur(5px)",
+      border: "1px solid #e0e0e0",
+    });
+  }
+
+  function applyRescueHeaderStyle(header) {
+    Object.assign(header.style, {
+      display: "flex",
+      alignItems: "center",
+      fontWeight: "800",
+      color: "#2c3e50",
+      marginBottom: "15px",
+      fontSize: "14px",
+      letterSpacing: "0.5px",
+    });
+  }
+
+  function applyRescueCardStyle(card) {
+    Object.assign(card.style, {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "12px",
+      marginBottom: "10px",
+      padding: "12px 15px",
+      background: "#ffffff",
+      border: "1px solid #edf2f7",
+      borderRadius: "10px",
+      boxShadow: "0 2px 8px rgba(15, 23, 42, 0.06)",
+      transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+    });
+
+    card.addEventListener("mouseenter", () => {
+      card.style.transform = "translateY(-2px)";
+      card.style.boxShadow = "0 8px 18px rgba(15, 23, 42, 0.08)";
+      card.style.borderColor = "#28a745";
+    });
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "0 2px 8px rgba(15, 23, 42, 0.06)";
+      card.style.borderColor = "#edf2f7";
+    });
+  }
+
+  function applyRescueInfoStyle(info) {
+    Object.assign(info.style, {
+      display: "flex",
+      flexDirection: "column",
+      minWidth: "0",
+      flex: "1 1 auto",
+    });
+  }
+
+  function applyFileNameStyle(nameEl) {
+    Object.assign(nameEl.style, {
+      fontWeight: "600",
+      color: "#4a5568",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+      fontSize: "13px",
+    });
+  }
+
+  function applyFileStatusStyle(statusEl) {
+    Object.assign(statusEl.style, {
+      fontSize: "10px",
+      color: "#28a745",
+      textTransform: "uppercase",
+      fontWeight: "bold",
+      marginTop: "2px",
+      letterSpacing: "0.04em",
+    });
+  }
+
+  function applyButtonGroupStyle(group) {
+    Object.assign(group.style, {
+      display: "flex",
+      gap: "8px",
+      flex: "0 0 auto",
+    });
+  }
+
+  function applyRescueButtonStyle(button, variant) {
+    const common = {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "34px",
+      height: "34px",
+      padding: "0",
+      borderRadius: "8px",
+      fontSize: "16px",
+      lineHeight: "1",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      appearance: "none",
+      WebkitAppearance: "none",
+      boxSizing: "border-box",
+      flex: "0 0 auto",
+      userSelect: "none",
+    };
+
+    const variants = {
+      inject: {
+        border: "none",
+        background: "#28a745",
+        color: "white",
+      },
+      download: {
+        border: "1px solid #e2e8f0",
+        background: "#f7fafc",
+        color: "#718096",
+      },
+      delete: {
+        border: "1px solid #fed7d7",
+        background: "#fff5f5",
+        color: "#c53030",
+      },
+    };
+
+    Object.assign(button.style, common, variants[variant]);
+
+    const hoverStyles = {
+      inject: { background: "#218838" },
+      download: { background: "#edf2f7", color: "#2d3748" },
+      delete: { background: "#fed7d7", color: "#9b2c2c" },
+    };
+
+    button.addEventListener("mouseenter", () => {
+      Object.assign(button.style, hoverStyles[variant], { transform: "scale(1.05)" });
+    });
+    button.addEventListener("mouseleave", () => {
+      Object.assign(button.style, common, variants[variant]);
+    });
+    button.addEventListener("mousedown", () => {
+      button.style.transform = "scale(0.95)";
+    });
+    button.addEventListener("mouseup", () => {
+      button.style.transform = "scale(1.05)";
+    });
   }
 
   function ensureModalRoot() {
@@ -278,6 +357,7 @@
         cancelBtn.removeEventListener("click", onCancel);
         backdrop.removeEventListener("click", onCancel);
         document.removeEventListener("keydown", onKeydown);
+        root.remove();
         resolve(result);
       };
 
@@ -301,6 +381,7 @@
 
     const container = document.createElement("div");
     container.className = "unipa-rescue-panel";
+    applyRescuePanelStyle(container);
 
     const fileItems = fileList
       .map(
@@ -325,7 +406,31 @@
           ${fileItems}
       `;
 
+    const header = container.querySelector(".rescue-header");
+    if (header) applyRescueHeaderStyle(header);
+
+    container.querySelectorAll(".g-file-card").forEach((card) => {
+      applyRescueCardStyle(card);
+    });
+
+    container.querySelectorAll(".file-info").forEach((info) => {
+      applyRescueInfoStyle(info);
+    });
+
+    container.querySelectorAll(".file-name").forEach((nameEl) => {
+      applyFileNameStyle(nameEl);
+    });
+
+    container.querySelectorAll(".file-status").forEach((statusEl) => {
+      applyFileStatusStyle(statusEl);
+    });
+
+    container.querySelectorAll(".btn-group").forEach((group) => {
+      applyButtonGroupStyle(group);
+    });
+
     container.querySelectorAll(".g-inject-btn").forEach((btn) => {
+      applyRescueButtonStyle(btn, "inject");
       btn.onclick = (e) => {
         e.preventDefault();
         injectFileToInput(inputEl, fileList[btn.dataset.idx]);
@@ -333,6 +438,7 @@
     });
 
     container.querySelectorAll(".g-dl-btn").forEach((btn) => {
+      applyRescueButtonStyle(btn, "download");
       btn.onclick = (e) => {
         e.preventDefault();
         const file = fileList[btn.dataset.idx];
@@ -344,6 +450,7 @@
     });
 
     container.querySelectorAll(".g-del-btn").forEach((btn) => {
+      applyRescueButtonStyle(btn, "delete");
       btn.onclick = (e) => {
         e.preventDefault();
         const idx = Number(btn.dataset.idx);
