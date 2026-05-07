@@ -443,3 +443,18 @@ if (storageArea && typeof storageArea.get === "function") {
   applyMonitorSettingsToForm(DEFAULT_MONITOR_SETTINGS);
   applyPreset(DEFAULT_MONITOR_SETTINGS.monitorTheme);
 }
+
+if (updateBannerOpen) {
+  updateBannerOpen.addEventListener("click", () => {
+    const releaseUrl = updateBanner?.dataset.releaseUrl;
+    if (releaseUrl) {
+      window.open(releaseUrl, "_blank", "noopener,noreferrer");
+    }
+  });
+}
+
+if (updateBannerLater) {
+  updateBannerLater.addEventListener("click", hideUpdateBanner);
+}
+
+void initUpdateBanner();
