@@ -2,26 +2,36 @@ name: Deploy Update Metadata
 on:
   push:
     branches: [ main ]
-    paths: [ 'manifest.json' ] # manifestが更新された時だけ動かす
+    paths: [ 'manifest.json' ]
+  workflow_dispatch: # 手動実行も可能にしておくとテストが楽です
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 同時に複数のワークフローが走った際、古い方をキャンセルして競合を防ぐ
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Create Metadata
         run: |
-          # manifest.jsonからversionを抽出
           VERSION=$(jq -r '.version' manifest.json)
-          # Pages公開用のディレクトリ作成
-          mkdir public
-          # 動的にJSONを生成
+          mkdir -p public
           echo "{
             \"version\": \"$VERSION\",
             \"release_url\": \"https://github.com/${{ github.repository }}/releases/latest\",
@@ -34,4 +44,5 @@ jobs:
           path: 'public/'
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
