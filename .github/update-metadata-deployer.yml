@@ -1,0 +1,37 @@
+name: Deploy Update Metadata
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'manifest.json' ] # manifestが更新された時だけ動かす
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Metadata
+        run: |
+          # manifest.jsonからversionを抽出
+          VERSION=$(jq -r '.version' manifest.json)
+          # Pages公開用のディレクトリ作成
+          mkdir public
+          # 動的にJSONを生成
+          echo "{
+            \"version\": \"$VERSION\",
+            \"release_url\": \"https://github.com/${{ github.repository }}/releases/latest\",
+            \"message\": \"最新版（v$VERSION）が公開されました。\"
+          }" > public/update.json
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'public/'
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
