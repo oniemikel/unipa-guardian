@@ -9,6 +9,20 @@
   let indicator = null;
   let timerStarted = false;
   let timerHandle = null;
+  let monitorSettings = {
+    showStatus: true,
+    monitorTheme: "classic",
+    monitorPosition: "bottom-right",
+    monitorScale: 1,
+    monitorOpacity: 0.9,
+    monitorRadius: 10,
+    monitorBorderWidth: 1,
+    monitorBgColor: "#1a202c",
+    monitorTextColor: "#4fd1c5",
+    monitorBorderColor: "#2d3748",
+    monitorShadow: 32,
+    monitorCorner: "session",
+  };
 
   // --- 【新機能】CSSの注入 ---
   const style = document.createElement("style");
@@ -142,9 +156,6 @@
 
       /* インジケーターのデザイン */
       #zombie-indicator {
-          position: fixed;
-          bottom: 15px;
-          right: 15px;
           z-index: 2147483647;
           padding: 12px 16px;
           background: rgba(26, 32, 44, 0.9);
@@ -180,6 +191,16 @@
             color: #FCA5A5;
             opacity: 1;
           }
+          #zombie-indicator[data-theme="glass"] {
+                backdrop-filter: blur(14px);
+              }
+          #zombie-indicator[data-theme="compact"] {
+                font-size: 11px;
+              }
+          #zombie-indicator[data-theme="alert"] {
+                border-width: 2px;
+                box-shadow: 0 10px 40px rgba(127, 29, 29, 0.35);
+              }
           .unipa-feedback {
             position: fixed;
             top: 20px;
@@ -280,6 +301,44 @@
   function applyRescueButtonStyle(button, variant) {
     button.classList.add("g-rescue-btn", `g-rescue-btn--${variant}`);
     void button;
+  }
+
+  function refreshMonitorDisplay(settings) {
+    monitorSettings = { ...monitorSettings, ...settings };
+    const indicatorEl = document.getElementById("zombie-indicator");
+    if (!indicatorEl) return;
+
+    indicatorEl.dataset.theme = monitorSettings.monitorTheme;
+    indicatorEl.style.background = monitorSettings.monitorBgColor;
+    indicatorEl.style.color = monitorSettings.monitorTextColor;
+    indicatorEl.style.borderColor = monitorSettings.monitorBorderColor;
+    indicatorEl.style.borderWidth = `${monitorSettings.monitorBorderWidth}px`;
+    indicatorEl.style.borderStyle = "solid";
+    indicatorEl.style.borderRadius = `${monitorSettings.monitorRadius}px`;
+    indicatorEl.style.opacity = String(monitorSettings.monitorOpacity);
+    indicatorEl.style.boxShadow = `0 12px ${monitorSettings.monitorShadow}px rgba(0,0,0,0.3)`;
+    indicatorEl.style.transform = `scale(${monitorSettings.monitorScale})`;
+    indicatorEl.style.position = "fixed";
+
+    const positionMap = {
+      "bottom-right": { right: "12px", bottom: "12px", left: "auto", top: "auto" },
+      "bottom-left": { left: "12px", bottom: "12px", right: "auto", top: "auto" },
+      "top-right": { right: "12px", top: "12px", left: "auto", bottom: "auto" },
+      "top-left": { left: "12px", top: "12px", right: "auto", bottom: "auto" },
+    };
+
+    Object.assign(indicatorEl.style, positionMap[monitorSettings.monitorPosition] || positionMap["bottom-right"]);
+  }
+
+  function handleSettingsUpdated(message) {
+    if (!message || message.type !== "unipa-guardian:settings-updated") return;
+    refreshMonitorDisplay(message.settings || {});
+  }
+
+  if (typeof chrome !== "undefined" && chrome.runtime && typeof chrome.runtime.onMessage?.addListener === "function") {
+    chrome.runtime.onMessage.addListener((message) => {
+      handleSettingsUpdated(message);
+    });
   }
 
   function ensureModalRoot() {
@@ -473,6 +532,228 @@
       };
     });
 
+
+  const UPDATE_CONFIG = {
+    storageKey: "unipa_guardian_update_notice",
+    bannerId: "unipa-guardian-update-banner",
+    styleId: "unipa-guardian-update-banner-style",
+    versionUrl: "https://oniemikel.github.io/unipa-guardian/update.json",
+  };
+
+  function getTodayDateString() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function compareVersions(leftVersion, rightVersion) {
+    const leftParts = String(leftVersion)
+      .split(".")
+      .map((part) => Number.parseInt(part, 10) || 0);
+    const rightParts = String(rightVersion)
+      .split(".")
+      .map((part) => Number.parseInt(part, 10) || 0);
+    const length = Math.max(leftParts.length, rightParts.length);
+
+    for (let index = 0; index < length; index += 1) {
+      const left = leftParts[index] || 0;
+      const right = rightParts[index] || 0;
+      if (left > right) return 1;
+      if (left < right) return -1;
+    }
+
+    return 0;
+  }
+
+  function getStorageValue(keys) {
+    return new Promise((resolve) => {
+      try {
+        chrome.storage.local.get(keys, (result) => {
+          resolve(result || {});
+        });
+      } catch (error) {
+        resolve({});
+      }
+    });
+  }
+
+  function setStorageValue(items) {
+    return new Promise((resolve) => {
+      try {
+        chrome.storage.local.set(items, () => resolve());
+      } catch (error) {
+        resolve();
+      }
+    });
+  }
+
+  function ensureUpdateBannerStyle() {
+    if (document.getElementById(UPDATE_CONFIG.styleId)) return;
+
+    const styleEl = document.createElement("style");
+    styleEl.id = UPDATE_CONFIG.styleId;
+    styleEl.textContent = `
+      #${UPDATE_CONFIG.bannerId} {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 2147483647;
+        box-sizing: border-box;
+        padding: 14px 16px;
+        background: rgba(15, 23, 42, 0.96);
+        color: #e2e8f0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.24);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__inner {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        justify-content: space-between;
+        width: min(1120px, 100%);
+        margin: 0 auto;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__message {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__title {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__detail {
+        font-size: 12px;
+        line-height: 1.5;
+        color: #cbd5e1;
+        white-space: pre-wrap;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__actions {
+        display: flex;
+        gap: 8px;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__btn {
+        appearance: none;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__btn:hover {
+        transform: translateY(-1px);
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__btn:active {
+        transform: translateY(0);
+        opacity: 0.9;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__btn--primary {
+        background: #38bdf8;
+        color: #082f49;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__btn--secondary {
+        background: #334155;
+        color: #e2e8f0;
+      }
+      #${UPDATE_CONFIG.bannerId} .ug-update-banner__btn--ghost {
+        background: rgba(148, 163, 184, 0.16);
+        color: #e2e8f0;
+      }
+      body.ug-update-banner-open {
+        padding-top: 76px;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(styleEl);
+  }
+
+  function removeUpdateBanner() {
+    const banner = document.getElementById(UPDATE_CONFIG.bannerId);
+    if (banner) banner.remove();
+    document.body.classList.remove("ug-update-banner-open");
+  }
+
+  function showUpdateBanner(updateInfo, currentVersion) {
+    if (document.getElementById(UPDATE_CONFIG.bannerId)) return;
+
+    ensureUpdateBannerStyle();
+
+    const banner = document.createElement("div");
+    banner.id = UPDATE_CONFIG.bannerId;
+    banner.setAttribute("role", "status");
+    banner.setAttribute("aria-live", "polite");
+    banner.innerHTML = `
+      <div class="ug-update-banner__inner">
+        <div class="ug-update-banner__message">
+          <div class="ug-update-banner__title"></div>
+          <div class="ug-update-banner__detail"></div>
+        </div>
+        <div class="ug-update-banner__actions">
+          <button type="button" class="ug-update-banner__btn ug-update-banner__btn--primary" data-action="download">ダウンロード</button>
+          <button type="button" class="ug-update-banner__btn ug-update-banner__btn--secondary" data-action="later">後で通知</button>
+          <button type="button" class="ug-update-banner__btn ug-update-banner__btn--ghost" data-action="mute">通知しない</button>
+        </div>
+      </div>
+    `;
+
+    const titleEl = banner.querySelector(".ug-update-banner__title");
+    const detailEl = banner.querySelector(".ug-update-banner__detail");
+    const downloadBtn = banner.querySelector('[data-action="download"]');
+    const laterBtn = banner.querySelector('[data-action="later"]');
+    const muteBtn = banner.querySelector('[data-action="mute"]');
+
+    titleEl.textContent = `新しいバージョン ${updateInfo.version} が利用できます`;
+    detailEl.textContent = updateInfo.message || `現在のバージョン: ${currentVersion}`;
+
+    downloadBtn.addEventListener("click", () => {
+      if (updateInfo.release_url) {
+        window.open(updateInfo.release_url, "_blank", "noopener,noreferrer");
+      }
+      removeUpdateBanner();
+    });
+
+    laterBtn.addEventListener("click", () => {
+      removeUpdateBanner();
+    });
+
+    muteBtn.addEventListener("click", async () => {
+      await setStorageValue({ [UPDATE_CONFIG.storageKey]: getTodayDateString() });
+      removeUpdateBanner();
+    });
+
+    document.body.appendChild(banner);
+    document.body.classList.add("ug-update-banner-open");
+  }
+
+  async function checkForUpdate() {
+    try {
+      const today = getTodayDateString();
+      const stored = await getStorageValue(UPDATE_CONFIG.storageKey);
+      if (stored[UPDATE_CONFIG.storageKey] === today) return;
+
+      const response = await fetch(UPDATE_CONFIG.versionUrl, { cache: "no-store" });
+      if (!response.ok) return;
+
+      const updateInfo = await response.json();
+      const currentVersion = chrome.runtime.getManifest().version;
+      if (!updateInfo || typeof updateInfo.version !== "string") return;
+
+      if (compareVersions(updateInfo.version, currentVersion) > 0) {
+        showUpdateBanner(updateInfo, currentVersion);
+      }
+    } catch (error) {
+      console.warn("[UNIPA Guardian] Update check failed:", error);
+    }
+  }
+
+  checkForUpdate();
     container.querySelectorAll(".g-dl-btn").forEach((btn) => {
       applyRescueButtonStyle(btn, "download");
       btn.onclick = (e) => {
@@ -637,11 +918,49 @@
 
     indicator = document.createElement("div");
     indicator.id = "zombie-indicator";
+    indicator.dataset.theme = monitorSettings.monitorTheme;
+    applyMonitorStyle(indicator, monitorSettings);
     indicator.innerHTML = `
       <span id="zombie-indicator__label">UNIPA SESSION</span><br>
       <span id="zombie-indicator__time">⏳ 15:00</span>
     `;
     (document.body || document.documentElement).appendChild(indicator);
+  }
+
+  function applyMonitorStyle(target, settings) {
+    const positionMap = {
+      "bottom-right": { right: "15px", bottom: "15px", left: "auto", top: "auto" },
+      "bottom-left": { left: "15px", bottom: "15px", right: "auto", top: "auto" },
+      "top-right": { right: "15px", top: "15px", left: "auto", bottom: "auto" },
+      "top-left": { left: "15px", top: "15px", right: "auto", bottom: "auto" },
+    };
+
+    const base = {
+      position: "fixed",
+      pointerEvents: "none",
+      lineBreak: "anywhere",
+      opacity: String(settings.monitorOpacity),
+      transform: `scale(${settings.monitorScale})`,
+      background: settings.monitorBgColor,
+      color: settings.monitorTextColor,
+      borderRadius: `${settings.monitorRadius}px`,
+      borderStyle: "solid",
+      borderWidth: `${settings.monitorBorderWidth}px`,
+      borderColor: settings.monitorBorderColor,
+      boxShadow: `0 8px ${settings.monitorShadow}px rgba(0,0,0,0.3)`,
+    };
+
+    Object.assign(target.style, base, positionMap[settings.monitorPosition] || positionMap["bottom-right"]);
+
+    if (settings.monitorCorner === "minimal") {
+      target.style.padding = "10px 12px";
+      target.style.fontSize = "11px";
+    } else if (settings.monitorCorner === "alert") {
+      target.style.padding = "14px 16px";
+      target.style.boxShadow = `0 10px ${settings.monitorShadow}px rgba(127, 29, 29, 0.35)`;
+    } else {
+      target.style.padding = "12px 16px";
+    }
   }
 
   function resetSessionTimer() {
@@ -800,13 +1119,14 @@
   const storageArea = globalThis.chrome && chrome.storage && chrome.storage.local;
   const loadSettings = (callback) => {
     if (storageArea && typeof storageArea.get === "function") {
-      storageArea.get({ showStatus: true }, callback);
+      storageArea.get({ showStatus: true, ...monitorSettings }, callback);
       return;
     }
-    callback({ showStatus: true });
+    callback({ showStatus: true, ...monitorSettings });
   };
 
   loadSettings((s) => {
+    monitorSettings = { ...monitorSettings, ...s };
     if (s.showStatus) {
       createStatusIndicator();
       startTimer();
@@ -818,6 +1138,7 @@
 
     const boot = () => {
       createStatusIndicator();
+      if (indicator) applyMonitorStyle(indicator, monitorSettings);
       processElements();
     };
 

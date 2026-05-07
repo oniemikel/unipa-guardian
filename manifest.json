@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "UNIPA Guardian",
-  "version": "2.6.2",
+  "version": "2.7.2",
   "description": "Guardian for UNIPA",
   "permissions": [
     "storage"
@@ -15,14 +15,14 @@
     "open_in_tab": false
   },
   "host_permissions": [
+    "https://*.github.io/*",
     "https://unipa.u-hyogo.ac.jp/*",
     "https://*.u-hyogo.ac.jp/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://unipa.u-hyogo.ac.jp/*",
-        "https://*.u-hyogo.ac.jp/*"
+        "https://unipa.*.ac.jp"
       ],
       "js": [
         "content.js"

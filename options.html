@@ -57,9 +57,148 @@
       align-items: center;
     }
 
+    .setting-item--stacked {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
     .setting-label {
       font-size: 13px;
       font-weight: 500;
+    }
+
+    .setting-help {
+      margin: 4px 0 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #64748b;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .preset-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--primary);
+    }
+
+    .preset-btn.active {
+      background: #eff6ff;
+      border-color: var(--primary);
+      color: #1d4ed8;
+    }
+
+    .customize-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .field input[type="color"] {
+      padding: 4px;
+      height: 36px;
+    }
+
+    .field input[type="range"] {
+      padding: 0;
+    }
+
+    .field-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-value {
+      font-size: 11px;
+      color: #475569;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .mt-14 {
+      margin-top: 14px;
+    }
+
+    .preview-wrap {
+      display: grid;
+      gap: 10px;
+    }
+
+    .preview-box {
+      position: relative;
+      min-height: 120px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+      overflow: hidden;
+    }
+
+    .preview-monitor {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      padding: 12px 14px;
+      font-family: 'Courier New', monospace;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .preview-monitor .preview-label {
+      display: block;
+      font-size: 10px;
+      opacity: 0.75;
+      margin-bottom: 3px;
+    }
+
+    .preview-monitor .preview-time {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
     }
 
     .section-title {
@@ -298,6 +437,119 @@
         <input type="checkbox" id="showStatus">
         <span class="slider"></span>
       </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">セッションモニターのデザイン</div>
+    <div class="setting-item setting-item--stacked">
+      <div>
+        <div class="setting-label">プリセット</div>
+        <p class="setting-help">見た目の雰囲気をすばやく切り替えられます。</p>
+      </div>
+      <div class="preset-grid" id="presetGrid">
+        <button type="button" class="preset-btn" data-preset="classic">Classic</button>
+        <button type="button" class="preset-btn" data-preset="glass">Glass</button>
+        <button type="button" class="preset-btn" data-preset="compact">Compact</button>
+        <button type="button" class="preset-btn" data-preset="alert">Alert</button>
+      </div>
+    </div>
+
+    <div class="setting-item setting-item--stacked mt-14">
+      <div>
+        <div class="setting-label">カスタム設定</div>
+        <p class="setting-help">色、角丸、位置、透明度などを個別に調整できます。</p>
+      </div>
+      <div class="customize-grid">
+        <div class="field">
+          <label for="monitorTheme">テーマ</label>
+          <select id="monitorTheme">
+            <option value="classic">Classic</option>
+            <option value="glass">Glass</option>
+            <option value="compact">Compact</option>
+            <option value="alert">Alert</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="monitorPosition">表示位置</label>
+          <select id="monitorPosition">
+            <option value="bottom-right">右下</option>
+            <option value="bottom-left">左下</option>
+            <option value="top-right">右上</option>
+            <option value="top-left">左上</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="monitorScale">サイズ</label>
+          <div class="field-inline">
+            <input type="range" id="monitorScale" min="0.8" max="1.5" step="0.05" value="1">
+            <span class="field-value" id="monitorScaleValue">1.00x</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="monitorOpacity">透明度</label>
+          <div class="field-inline">
+            <input type="range" id="monitorOpacity" min="0.35" max="1" step="0.05" value="0.9">
+            <span class="field-value" id="monitorOpacityValue">90%</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="monitorRadius">角丸</label>
+          <div class="field-inline">
+            <input type="range" id="monitorRadius" min="0" max="24" step="1" value="10">
+            <span class="field-value" id="monitorRadiusValue">10px</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="monitorBorderWidth">枠線</label>
+          <div class="field-inline">
+            <input type="range" id="monitorBorderWidth" min="0" max="4" step="1" value="1">
+            <span class="field-value" id="monitorBorderWidthValue">1px</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="monitorBgColor">背景色</label>
+          <input type="color" id="monitorBgColor" value="#1a202c">
+        </div>
+        <div class="field">
+          <label for="monitorTextColor">文字色</label>
+          <input type="color" id="monitorTextColor" value="#4fd1c5">
+        </div>
+
+        <div class="field">
+          <label for="monitorBorderColor">枠線色</label>
+          <input type="color" id="monitorBorderColor" value="#2d3748">
+        </div>
+        <div class="field">
+          <label for="monitorShadow">影の強さ</label>
+          <div class="field-inline">
+            <input type="range" id="monitorShadow" min="0" max="60" step="2" value="32">
+            <span class="field-value" id="monitorShadowValue">32</span>
+          </div>
+        </div>
+
+        <div class="field span-2">
+          <label for="monitorCorner">表示の雰囲気</label>
+          <select id="monitorCorner">
+            <option value="session">セッション表示</option>
+            <option value="alert">アラート強調</option>
+            <option value="minimal">最小構成</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="setting-label">プレビュー</div>
+        <div class="preview-box" id="monitorPreviewBox">
+          <div class="preview-monitor" id="monitorPreview">
+            <span class="preview-label">UNIPA SESSION</span>
+            <span class="preview-time">⏳ 15:00</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
